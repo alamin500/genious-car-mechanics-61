@@ -7,32 +7,44 @@ import {
 } from "firebase/auth";
 import { useEffect } from "react";
 import { useState } from "react";
+import initailizeAuthentication from "../Pages/Login/Firebase/firebase.init";
 
+initailizeAuthentication();
 const useFirebase = () => {
-  const [users, setUsers] = useState({});
+  const [user, setUser] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
   const auth = getAuth();
 
   const signInUsingGoogle = () => {
+    setIsLoading(true);
     const googleProvider = new GoogleAuthProvider();
-    signInWithPopup(auth, googleProvider).then((result) => {
-      setUsers(result.user);
-    });
+    signInWithPopup(auth, googleProvider)
+      .then((result) => {
+        setUser(result.user);
+        //   console.log(result.user);
+      })
+      .finally(() => setIsLoading(false));
   };
   useEffect(() => {
     const unsubscrived = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setUsers(user);
+        setUser(user);
       } else {
-        setUsers({});
+        setUser({});
       }
+      setIsLoading(false);
     });
     return () => unsubscrived;
   }, []);
   const logOut = () => {
-    signOut(auth).then(() => {});
+    setIsLoading(true);
+    signOut(auth)
+      .then(() => {})
+      .finally(() => setIsLoading(false));
   };
   return {
-    users,
+    user,
+    isLoading,
     signInUsingGoogle,
     logOut,
   };
